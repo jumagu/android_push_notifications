@@ -12,3 +12,9 @@ class AuthorizationStatusChanged extends NotificationsEvent {
 
   const AuthorizationStatusChanged(this.status);
 }
+
+class PushNotificationReceived extends NotificationsEvent {
+  final PushNotification notification;
+
+  const PushNotificationReceived(this.notification);
+}

@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:android_push_notifications/domain/entities/push_notification.dart';
 import 'package:android_push_notifications/firebase_options.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,6 +24,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 
   NotificationsBloc() : super(NotificationsState()) {
     on<AuthorizationStatusChanged>(_onAuthorizationStatusChanged);
+    on<PushNotificationReceived>(_onPushNotificationReceived);
 
     _checkInitialStatus();
 
@@ -48,6 +52,18 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     add(AuthorizationStatusChanged(settings.authorizationStatus));
   }
 
+  PushNotification? getPushNotificationById(String notificationId) {
+    final exists = state.notifications.any(
+      (element) => element.id == notificationId,
+    );
+
+    if (!exists) return null;
+
+    return state.notifications.firstWhere(
+      (element) => element.id == notificationId,
+    );
+  }
+
   // * State Handlers
   void _onAuthorizationStatusChanged(
     AuthorizationStatusChanged event,
@@ -55,6 +71,17 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   ) {
     emit(state.copyWith(status: event.status));
     _getFCMToken();
+  }
+
+  void _onPushNotificationReceived(
+    PushNotificationReceived event,
+    Emitter<NotificationsState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        notifications: [event.notification, ...state.notifications],
+      ),
+    );
   }
 
   // * Aux methods
@@ -76,11 +103,19 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   }
 
   void _handleRemoteMessage(RemoteMessage message) {
-    print('Got a message whilst in the foreground!');
-    print('Message data: ${message.data}');
-
     if (message.notification == null) return;
 
-    print('Message also contained a notification: ${message.notification}');
+    final notification = PushNotification(
+      id: message.messageId?.replaceAll(':', '').replaceAll('%', '') ?? '',
+      title: message.notification!.title ?? '',
+      body: message.notification!.body ?? '',
+      sentDate: message.sentTime ?? DateTime.now(),
+      data: message.data,
+      imageUrl: Platform.isAndroid
+          ? message.notification!.android?.imageUrl
+          : null,
+    );
+
+    add(PushNotificationReceived(notification));
   }
 }
