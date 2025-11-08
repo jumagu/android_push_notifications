@@ -1,6 +1,7 @@
 import 'package:android_push_notifications/presentation/blocs/notifications_bloc/notifications_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -36,6 +37,7 @@ class _HomeView extends StatelessWidget {
             .watch<NotificationsBloc>()
             .state
             .notifications[index];
+
         return ListTile(
           title: Text(notification.title),
           subtitle: Text(notification.body),
@@ -49,6 +51,7 @@ class _HomeView extends StatelessWidget {
                   ),
                 )
               : null,
+          onTap: () => context.push('/notification-detail/${notification.id}'),
         );
       },
     );

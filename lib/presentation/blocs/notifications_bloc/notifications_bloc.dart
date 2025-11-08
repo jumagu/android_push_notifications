@@ -64,6 +64,23 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     );
   }
 
+  void handleRemoteMessage(RemoteMessage message) {
+    if (message.notification == null) return;
+
+    final notification = PushNotification(
+      id: message.messageId?.replaceAll(':', '').replaceAll('%', '') ?? '',
+      title: message.notification!.title ?? '',
+      body: message.notification!.body ?? '',
+      sentDate: message.sentTime ?? DateTime.now(),
+      data: message.data,
+      imageUrl: Platform.isAndroid
+          ? message.notification!.android?.imageUrl
+          : null,
+    );
+
+    add(PushNotificationReceived(notification));
+  }
+
   // * State Handlers
   void _onAuthorizationStatusChanged(
     AuthorizationStatusChanged event,
@@ -90,32 +107,15 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     add(AuthorizationStatusChanged(settings.authorizationStatus));
   }
 
+  void _onForegroundMessage() {
+    FirebaseMessaging.onMessage.listen(handleRemoteMessage);
+  }
+
   Future<void> _getFCMToken() async {
     if (state.status != AuthorizationStatus.authorized) return;
 
     final token = await messaging.getToken();
 
     print(token);
-  }
-
-  void _onForegroundMessage() {
-    FirebaseMessaging.onMessage.listen(_handleRemoteMessage);
-  }
-
-  void _handleRemoteMessage(RemoteMessage message) {
-    if (message.notification == null) return;
-
-    final notification = PushNotification(
-      id: message.messageId?.replaceAll(':', '').replaceAll('%', '') ?? '',
-      title: message.notification!.title ?? '',
-      body: message.notification!.body ?? '',
-      sentDate: message.sentTime ?? DateTime.now(),
-      data: message.data,
-      imageUrl: Platform.isAndroid
-          ? message.notification!.android?.imageUrl
-          : null,
-    );
-
-    add(PushNotificationReceived(notification));
   }
 }
