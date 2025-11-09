@@ -27,7 +27,7 @@ https://github.com/user-attachments/assets/4cf8ce13-90bd-457d-8282-8a245fc68168
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/jumagu/android_push_notifications
+git clone https://github.com/jumagu/android_push_notifications.git
 cd android_push_notifications
 ```
 
