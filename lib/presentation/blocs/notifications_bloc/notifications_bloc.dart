@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:android_push_notifications/config/local_notifications/local_notifications.dart';
 import 'package:android_push_notifications/domain/entities/push_notification.dart';
 import 'package:android_push_notifications/firebase_options.dart';
 import 'package:equatable/equatable.dart';
@@ -24,7 +23,19 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   int notificationId = 0;
 
-  NotificationsBloc() : super(NotificationsState()) {
+  final Future<void> Function()? requestLocalNotificationPermissionFn;
+  final void Function({
+    required int id,
+    String? title,
+    String? body,
+    String? data,
+  })?
+  showLocalNotificationFn;
+
+  NotificationsBloc({
+    this.showLocalNotificationFn,
+    this.requestLocalNotificationPermissionFn,
+  }) : super(NotificationsState()) {
     on<AuthorizationStatusChanged>(_onAuthorizationStatusChanged);
     on<PushNotificationReceived>(_onPushNotificationReceived);
 
@@ -52,7 +63,9 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     );
 
     // Request permission for local notification too
-    await LocalNotifications.requestPermissionLocalNotification();
+    if (requestLocalNotificationPermissionFn != null) {
+      await requestLocalNotificationPermissionFn!();
+    }
 
     add(AuthorizationStatusChanged(settings.authorizationStatus));
   }
@@ -83,12 +96,14 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
           : null,
     );
 
-    LocalNotifications.showLocalNotification(
-      id: ++notificationId,
-      title: notification.title,
-      body: notification.body,
-      data: notification.data.toString(),
-    );
+    if (showLocalNotificationFn != null) {
+      showLocalNotificationFn!(
+        id: ++notificationId,
+        title: notification.title,
+        body: notification.body,
+        data: notification.data.toString(),
+      );
+    }
 
     add(PushNotificationReceived(notification));
   }
