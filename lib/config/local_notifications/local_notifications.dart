@@ -27,4 +27,32 @@ class LocalNotifications {
       // onDidReceiveBackgroundNotificationResponse: TODO: implement this
     );
   }
+
+  static Future<void> showLocalNotification({
+    required int id,
+    String? title,
+    String? body,
+    String? data,
+  }) async {
+    const androidDetails = AndroidNotificationDetails(
+      'channelId',
+      'channelName',
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification'),
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const notificationDetails = NotificationDetails(android: androidDetails);
+
+    final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    await flutterLocalNotificationsPlugin.show(
+      id,
+      title,
+      body,
+      notificationDetails,
+      payload: data,
+    );
+  }
 }
