@@ -1,3 +1,4 @@
+import 'package:android_push_notifications/config/local_notifications/local_notifications.dart';
 import 'package:android_push_notifications/config/router/app_router.dart';
 import 'package:android_push_notifications/config/theme/app_theme.dart';
 import 'package:android_push_notifications/presentation/blocs/notifications_bloc/notifications_bloc.dart';
@@ -11,6 +12,7 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   await NotificationsBloc.initFCM();
+  await LocalNotifications.initLocalNotifications();
 
   runApp(
     MultiBlocProvider(
